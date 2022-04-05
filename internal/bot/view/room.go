@@ -2,9 +2,9 @@ package view
 
 import (
 	"fmt"
+	"github.com/go-pkgz/lgr"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/rs/zerolog/log"
-	tgbot "gotestbot/sdk/tgbot"
+	"gotestbot/sdk/tgbot"
 )
 
 func (v *View) AddRoomName(u *tgbot.Update) (tgbotapi.Message, error) {
@@ -20,8 +20,9 @@ func (v *View) AddSettingRoom(prefix string, u *tgbot.Update) (tgbotapi.Message,
 
 	builder := new(tgbot.MessageBuilder).
 		NewMessage(u.GetUserId()).
-		Text(prefix+"Выберите настройка для команты").
-		AddKeyboardRow().AddButton("⏳ Использовать таймер", timerBtn.Id)
+		Text(prefix+"Выберите настройка для комнаты").
+		AddKeyboardRow().AddButton("⏳ Использовать таймер", timerBtn.Id).
+		AddKeyboardRow().AddButton("❌ Не использовать таймер", timerBtn.Id)
 
 	return logIfError(v.tg.Send(builder.Build()))
 }
@@ -41,7 +42,8 @@ func (v *View) ShowRooms(u *tgbot.Update) (tgbotapi.Message, error) {
 	roomId := "roomId"
 	users, err := v.roomProv.GetUsersByRoomId(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to get users by roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to get users by roomId: %d, $v", roomId, err)
+		return tgbotapi.Message{}, err
 	}
 
 	var members string
@@ -50,7 +52,8 @@ func (v *View) ShowRooms(u *tgbot.Update) (tgbotapi.Message, error) {
 	}
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to get room by roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to get room by roomId: %d, $v", roomId, err)
+		return tgbotapi.Message{}, err
 	}
 
 	builder := new(tgbot.MessageBuilder).

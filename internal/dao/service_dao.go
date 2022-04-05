@@ -223,7 +223,7 @@ func (r *Repository) GetRateByUserAndTaskId(userId int64, taskId string) (*model
 }
 
 func (r *Repository) GetRatesByTaskId(taskId string) ([]model.Rate, error) {
-	rows, err := r.db.Queryx(`SELECT r.* FROM rate r 
+	rows, err := r.db.Queryx(`SELECT r.* FROM rate  r 
 								WHERE r.task_id = $1`, taskId)
 	if err != nil {
 		return nil, err

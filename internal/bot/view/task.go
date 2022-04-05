@@ -2,8 +2,8 @@ package view
 
 import (
 	"fmt"
+	"github.com/go-pkgz/lgr"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/rs/zerolog/log"
 	"gotestbot/internal/service/model"
 	tgbot2 "gotestbot/sdk/tgbot"
 	"math"
@@ -36,7 +36,7 @@ func (v *View) AddSettingTask(prefix string, u *tgbot2.Update) (tgbotapi.Message
 	builder := new(tgbot2.MessageBuilder).
 		NewMessage(u.GetUserId()).
 		Text(prefix+"Выберите настройка для задачи").
-		AddKeyboardRow().AddButton("💾 Сохранить и  🏹 опубликовать", saveAndSendBtn.Id).
+		AddKeyboardRow().AddButton("💾 Сохранить и 🏹 опубликовать", saveAndSendBtn.Id).
 		AddKeyboardRow().AddButton("💾 Сохранить и 🔄 создать еще", saveAndNewBtn.Id).
 		AddKeyboardRow().AddButton("💾 Сохранить и выйти", saveAndCancelBtn.Id)
 
@@ -54,27 +54,27 @@ func (v *View) ShowTaskView(chatId int64, taskId string, roomId string, u *tgbot
 
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRoomById for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetRoomById for roomId: %d", roomId)
 		return tgbotapi.Message{}, err
 	}
 	text := fmt.Sprintf("Комната: *%s*\n", room.Name)
 
 	task, err := v.taskProv.GetTaskById(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTaskById for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetTaskById for taskId: %d", taskId)
 		return tgbotapi.Message{}, err
 	}
 	text += fmt.Sprintf("Задача: *%s*\n\n", task.Name)
 
 	users, err := v.roomProv.GetUsersByRoomId(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTaskById for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetUsersByRoomId for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 
 	rates, err := v.rateProv.GetRatesByTaskId(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRatesByTaskId for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetTaskById for taskId: %d, %v", taskId, err)
 		return tgbotapi.Message{}, err
 	}
 
@@ -118,30 +118,24 @@ func (v *View) ShowTaskView(chatId int64, taskId string, roomId string, u *tgbot
 	return logIfError(v.tg.Send(messageBuilder.Build()))
 }
 
-func (v *View) ShowFinishedTaskView(taskId string, roomId string, u *tgbot2.Update) (tgbotapi.Message, error) {
+func (v *View) ShowFinishedTaskView(taskId string, roomId string, rates []model.Rate, u *tgbot2.Update) (tgbotapi.Message, error) {
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRoomById for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetRoomById for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	text := fmt.Sprintf("Комната: *%s*\n", room.Name)
 
 	task, err := v.taskProv.GetTaskById(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTaskById for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetTaskById for taskId: %d, %v", taskId, err)
 		return tgbotapi.Message{}, err
 	}
 	text += fmt.Sprintf("Задача: *%s*\n\n", task.Name)
 
 	users, err := v.roomProv.GetUsersByRoomId(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTaskById for taskId: %d", taskId)
-		return tgbotapi.Message{}, err
-	}
-
-	rates, err := v.rateProv.GetRatesByTaskId(taskId)
-	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRatesByTaskId for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetUsersByRoomId for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 
@@ -165,7 +159,7 @@ func (v *View) ShowFinishedTaskView(taskId string, roomId string, u *tgbot2.Upda
 
 	mode, err := v.rateProv.GetModeByTaskId(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRatesByTaskId for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetTaskById for taskId: %d, %v", taskId, err)
 		return tgbotapi.Message{}, err
 	}
 	text += fmt.Sprintf("\nМода - *%d*", mode)
@@ -202,12 +196,12 @@ func isOdd(sums []int32) bool {
 func (v *View) ShowTaskTime(taskId string, roomId string, u *tgbot2.Update) (tgbotapi.Message, error) {
 	task, err := v.taskProv.GetTaskById(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTaskById for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetTaskById for taskId: %d, %v", taskId, err)
 		return tgbotapi.Message{}, err
 	}
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRoomById for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetRoomById for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	if !task.Finished {
@@ -221,12 +215,12 @@ func (v *View) ShowTaskTime(taskId string, roomId string, u *tgbot2.Update) (tgb
 func (v *View) ShowTasks(roomId string, page int, u *tgbot2.Update) (tgbotapi.Message, error) {
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRoomById for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetRoomById for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	tasks, err := v.taskProv.GetTasksByRoomIdAndPagination(room.Id.String(), page*10, 10)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTasksByRoomId for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetTasksByRoomId for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	if tasks == nil {
@@ -241,7 +235,7 @@ func (v *View) ShowTasks(roomId string, page int, u *tgbot2.Update) (tgbotapi.Me
 		taskBtn := v.createButton(ActionShowTask, map[string]string{"taskId": task.Id.String(), "roomId": task.RoomId.String()})
 		finishedEmoji := "❌"
 		if task.Finished {
-			finishedEmoji = "✅"
+			finishedEmoji = "✅ " + strconv.FormatInt(int64(task.Grade), 32)
 		}
 		builder.AddKeyboardRow().AddButton(fmt.Sprintf("%v %v", finishedEmoji, task.Name), taskBtn.Id)
 	}
@@ -261,12 +255,12 @@ func (v *View) ShowTasks(roomId string, page int, u *tgbot2.Update) (tgbotapi.Me
 func (v *View) ShowTasksAfterFinishedRoom(roomId string, u *tgbot2.Update) (tgbotapi.Message, error) {
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRoomById for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetRoomById for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	tasks, err := v.taskProv.GetTasksByRoomIdAndPagination(room.Id.String(), 0, math.MaxInt64)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTasksByRoomId for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetTasksByRoomId for roomId: %d, %v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	if tasks == nil {
@@ -288,32 +282,34 @@ func (v *View) ShowTasksAfterFinishedRoom(roomId string, u *tgbot2.Update) (tgbo
 func (v *View) ShowSetTaskGrade(taskId, roomId string, u *tgbot2.Update) (tgbotapi.Message, error) {
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRoomById for roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to GetRoomById for roomId: %d, $v", roomId, err)
 		return tgbotapi.Message{}, err
 	}
 	text := fmt.Sprintf("Комната: *%s*\n\n", room.Name)
 
 	task, err := v.taskProv.GetTaskById(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetTaskById for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetTaskById for taskId: %d, $v", taskId, err)
 		return tgbotapi.Message{}, err
 	}
 	text += fmt.Sprintf("Завершена оценка по задаче: *%s*\n", task.Name)
 
 	sumRates, err := v.rateProv.GetRatesSums(taskId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRatesByTaskId for taskId: %d", taskId)
+		lgr.Printf("[ERROR] unable to GetRatesByTaskId for taskId: %d, $v", taskId, err)
 		return tgbotapi.Message{}, err
 	}
 
-	text += fmt.Sprintf("\nМедиана - *%d*", calcMedian(sumRates))
+	if sumRates != nil {
+		text += fmt.Sprintf("\nМедиана - *%d*", calcMedian(sumRates))
 
-	mode, err := v.rateProv.GetModeByTaskId(taskId)
-	if err != nil {
-		log.Error().Err(err).Msgf("unable to GetRatesByTaskId for taskId: %d", taskId)
-		return tgbotapi.Message{}, err
+		mode, err := v.rateProv.GetModeByTaskId(taskId)
+		if err != nil {
+			lgr.Fatalf("[ERROR] unable to GetRatesByTaskId for taskId: %d, $v", taskId, err)
+			return tgbotapi.Message{}, err
+		}
+		text += fmt.Sprintf("\nМода - *%d*", mode)
 	}
-	text += fmt.Sprintf("\nМода - *%d*", mode)
 
 	finishRateBtn := v.createButton(ActionFinishTaskRate, map[string]string{"roomId": roomId, "taskId": taskId})
 	revoteRateBtn := v.createButton(ActionRevoteTaskRate, map[string]string{"roomId": roomId, "taskId": taskId})

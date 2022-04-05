@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
-	"github.com/rs/zerolog/log"
+	"github.com/go-pkgz/lgr"
 	"net/url"
 	"strings"
 	"time"
@@ -29,7 +29,7 @@ var conf struct {
 
 	Pg pg `envPrefix:"DB_"`
 
-	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
+	LogLevel  string `env:"LOG_LEVEL" envDefault:"debug"`
 	LogFormat string `env:"LOG_FORMAT" envDefault:"logstash"`
 	Dry       bool   `env:"DRY" envDefault:"false"`
 }
@@ -37,7 +37,7 @@ var conf struct {
 func InitConfig() {
 	conf := &conf
 	if err := env.Parse(conf); err != nil {
-		log.Fatal().Err(err).Msg("Unable to init config")
+		lgr.Print("[ERROR] Unable to init config")
 	}
 }
 

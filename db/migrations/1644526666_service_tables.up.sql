@@ -18,6 +18,7 @@ CREATE TABLE room_member
 CREATE TABLE task
 (
     id           UUID PRIMARY KEY,
+    url          VARCHAR,
     name         VARCHAR   NOT NULL,
     room_id      UUID,
     created_date TIMESTAMP NOT NULL,

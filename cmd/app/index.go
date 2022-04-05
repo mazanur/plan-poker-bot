@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/rs/zerolog/log"
+	"github.com/go-pkgz/lgr"
 	"gotestbot/internal/bot/bot_handler"
 	"gotestbot/internal/bot/view"
 	"gotestbot/internal/dao"
@@ -16,7 +16,7 @@ func Handler(rw http.ResponseWriter, req *http.Request) {
 	InitConfig()
 
 	if conf.Dry {
-		log.Info().Msg("Started in dry mode ok\nBye!")
+		lgr.Printf("[INFO] Started in dry mode ok\nBye!")
 		os.Exit(0)
 	}
 
@@ -27,7 +27,7 @@ func Handler(rw http.ResponseWriter, req *http.Request) {
 
 	bot, err := tgbot.NewBot(conf.TgToken, pgRepository)
 	if err != nil {
-		log.Fatal().Err(err).Msg("unable to start app")
+		lgr.Fatalf("[ERROR] unable to start app")
 	}
 
 	rateService := service.NewRateService(pgRepository)
@@ -39,7 +39,7 @@ func Handler(rw http.ResponseWriter, req *http.Request) {
 		rateService)
 	update, err := bot.WrapRequest(req)
 	if err != nil {
-		log.Error().Err(err).Msg("unable read request")
+		lgr.Printf("[ERROR] unable read request %v", err)
 		return
 	}
 

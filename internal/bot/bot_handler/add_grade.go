@@ -1,7 +1,7 @@
 package bot_handler
 
 import (
-	"github.com/rs/zerolog/log"
+	"github.com/go-pkgz/lgr"
 	"gotestbot/internal/bot/view"
 	"gotestbot/sdk/tgbot"
 	"strconv"
@@ -28,12 +28,13 @@ func (b *BotApp) HandleAddTaskGrade(u *tgbot.Update) {
 		grade := u.GetText()
 		gradeInt64, err := strconv.ParseInt(grade, 10, 32)
 		if err != nil {
-			log.Error().Err(err).Msgf("unable to get room by roomId: %d", grade)
+			lgr.Printf("[ERROR] unable to get room by roomId: %d, $v", grade, err)
+
 		}
 
 		taskId := u.GetChainData("taskId")
 		if err = b.taskService.SetGradeTask(int32(gradeInt64), taskId); err != nil {
-			log.Error().Err(err).Msgf("unable SetGradeTask by taskId: %v", taskId)
+			lgr.Printf("[ERROR] unable SetGradeTask by taskId: %v, $v", taskId, err)
 			_, _ = b.view.ErrorMessageText("❗️ Ошибка присваивания итоговой оценки задаче", u)
 			return
 		}

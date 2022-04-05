@@ -3,9 +3,9 @@ package view
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-pkgz/lgr"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"gotestbot/sdk/tgbot"
 )
 
@@ -18,7 +18,7 @@ func (v *View) createButton(action tgbot.Action, data map[string]string) *tgbot.
 	}
 	err := v.chatProv.SaveButton(button)
 	if err != nil {
-		log.Error().Err(err).Msgf("cannot save button")
+		lgr.Printf("[ERROR] cannot save button")
 	}
 	return &button
 }
@@ -29,11 +29,11 @@ func logIfError(send tgbotapi.Message, err error) (tgbotapi.Message, error) {
 	}
 	switch err.(type) {
 	default:
-		log.Error().Err(err).Stack().Msg("cannot send")
+		lgr.Printf("[ERROR] cannot send")
 		return send, err
 
 	case *json.UnmarshalTypeError:
-		log.Warn().Err(err).Stack().Msg("")
+		lgr.Printf("[WARN] unmarshal")
 		return send, nil
 	}
 }

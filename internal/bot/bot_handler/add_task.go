@@ -2,8 +2,8 @@ package bot_handler
 
 import (
 	"fmt"
+	"github.com/go-pkgz/lgr"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"gotestbot/internal/bot/view"
 	"gotestbot/internal/service/model"
 	"gotestbot/sdk/tgbot"
@@ -17,7 +17,7 @@ func (b *BotApp) HandleAddTask(u *tgbot.Update) {
 		roomId := u.GetButton().GetData("roomId")
 		room, err := b.roomService.GetRoomById(roomId)
 		if err != nil {
-			log.Error().Err(err).Msgf("unable to get room by roomId: %d", roomId)
+			lgr.Printf("[ERROR] unable to get room by roomId: %d, $v", roomId, err)
 			return
 		}
 		if room.ChatId == 0 {
@@ -61,14 +61,15 @@ func (b *BotApp) HandleAddTask(u *tgbot.Update) {
 			RoomId:      roomIdUuid,
 			CreatedDate: time.Now(),
 		}); err != nil {
-			log.Error().Err(err).Msg("")
+			lgr.Printf("[ERROR] ")
+
 			b.sendErrorMessage(u)
 			return
 		}
 
 		room, err := b.roomService.GetRoomById(roomId)
 		if err != nil {
-			log.Error().Err(err).Msgf("unable to get room by roomId: %d", roomId)
+			lgr.Printf("[ERROR] unable to get room by roomId: %d, $v", roomId, err)
 			return
 		}
 

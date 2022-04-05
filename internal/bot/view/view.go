@@ -2,9 +2,9 @@ package view
 
 import (
 	"fmt"
+	"github.com/go-pkgz/lgr"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"gotestbot/internal/service/model"
 	"gotestbot/sdk/tgbot"
 	"strconv"
@@ -71,7 +71,7 @@ func (v *View) StartView(u *tgbot.Update) (tgbotapi.Message, error) {
 func (v *View) ShowRoomView(prefix, roomId string, u *tgbot.Update) (tgbotapi.Message, error) {
 	users, err := v.roomProv.GetUsersByRoomId(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to get users by roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to get users by roomId: %d", roomId)
 	}
 
 	var members string
@@ -80,7 +80,7 @@ func (v *View) ShowRoomView(prefix, roomId string, u *tgbot.Update) (tgbotapi.Me
 	}
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to get room by roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to get room by roomId: %d", roomId)
 	}
 
 	builder := new(tgbot.MessageBuilder).
@@ -147,7 +147,7 @@ func (v *View) ShowRoomsInline(rooms []model.Room, u *tgbot.Update) (tgbotapi.Me
 
 		users, err := v.roomProv.GetUsersByRoomId(room.Id.String())
 		if err != nil {
-			log.Error().Err(err).Msgf("unable to get users by roomId: %d", room.Id.String())
+			lgr.Printf("[ERROR] unable to get users by roomId: %d", room.Id.String())
 		}
 
 		var members string
@@ -167,7 +167,7 @@ func (v *View) ShowRoomsInline(rooms []model.Room, u *tgbot.Update) (tgbotapi.Me
 func (v *View) ShowRoomViewInline(roomId string, u *tgbot.Update) (tgbotapi.Message, error) {
 	users, err := v.roomProv.GetUsersByRoomId(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to get users by roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to get users by roomId: %d", roomId)
 	}
 
 	var members string
@@ -176,7 +176,7 @@ func (v *View) ShowRoomViewInline(roomId string, u *tgbot.Update) (tgbotapi.Mess
 	}
 	room, err := v.roomProv.GetRoomById(roomId)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to get room by roomId: %d", roomId)
+		lgr.Printf("[ERROR] unable to get room by roomId: %d", roomId)
 	}
 
 	builder := new(tgbot.MessageBuilder).

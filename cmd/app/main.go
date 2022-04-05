@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"github.com/fatih/color"
+	"github.com/go-pkgz/lgr"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" //for db migration
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"gotestbot/internal/bot/bot_handler"
 	"gotestbot/internal/bot/view"
 	"gotestbot/internal/dao"
@@ -14,7 +15,6 @@ import (
 	"gotestbot/sdk/tgbot"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 )
 
@@ -23,7 +23,7 @@ func main() {
 	InitConfig()
 
 	if conf.Dry {
-		log.Info().Msg("Started in dry mode ok\nBye!")
+		lgr.Printf("[INFO] Started in dry mode ok\nnBye!")
 		os.Exit(0)
 	}
 
@@ -34,7 +34,7 @@ func main() {
 
 	bot, err := tgbot.NewBot(conf.TgToken, pgRepository)
 	if err != nil {
-		log.Fatal().Err(err).Msg("unable to start app")
+		lgr.Fatalf("[ERROR] unable to start app")
 	}
 
 	rateService := service.NewRateService(pgRepository)
@@ -48,7 +48,7 @@ func main() {
 	go func() {
 		err = bot.StartLongPolling(application.Handle)
 		if err != nil {
-			log.Fatal().Err(err).Msg("unable to start app")
+			lgr.Fatalf("[ERROR] unable to start app")
 		}
 	}()
 
@@ -62,19 +62,20 @@ func PgConnInit() *sqlx.DB {
 	dsn := GetPgDsn()
 
 	if err := MigrateDB(dsn); err != nil {
-		log.Fatal().Msgf("Database migration failed: %s", err.Error())
+		lgr.Fatalf("[ERROR] Database migration failed: %s", err.Error())
 	}
-	log.Info().Msg("Database migration succeeded")
+	lgr.Print("[INFO] Database migration succeeded")
 
 	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
-		log.Fatal().Msgf("Failed to connect to db. dsn='%s': %s", DsnMaskPass(dsn), err.Error())
+		lgr.Fatalf("Failed to connect to db. dsn='%s': %s", DsnMaskPass(dsn), err.Error())
 	}
 	db.SetMaxOpenConns(conf.Pg.MaxOpenConn)
 	db.SetMaxIdleConns(conf.Pg.MaxIdleConn)
 	db.SetConnMaxLifetime(conf.Pg.MaxLifeTime)
 	db.SetConnMaxIdleTime(conf.Pg.MaxIdleTime)
-	log.Info().Msg("Connected to db")
+	lgr.Print("[INFO] Connected to db")
+
 	return db
 }
 
@@ -92,24 +93,45 @@ func MigrateDB(dsn string) error {
 }
 
 func InitLogger() {
-	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000Z"
-	zerolog.TimestampFieldName = "@timestamp"
+	setupLog(conf.LogLevel == "debug", "")
+}
 
-	logLvl, err := zerolog.ParseLevel(strings.ToLower(conf.LogLevel))
-	if err != nil {
-		log.Fatal().Msgf("Failed to parse log level '%s': %s", conf.LogLevel, err.Error())
+func setupLog(dbg bool, lf string) {
+	colorizer := lgr.Mapper{
+		ErrorFunc:  func(s string) string { return color.New(color.FgHiRed).Sprint(s) },
+		WarnFunc:   func(s string) string { return color.New(color.FgHiYellow).Sprint(s) },
+		InfoFunc:   func(s string) string { return color.New(color.FgHiWhite).Sprint(s) },
+		DebugFunc:  func(s string) string { return color.New(color.FgWhite).Sprint(s) },
+		CallerFunc: func(s string) string { return color.New(color.FgBlue).Sprint(s) },
+		TimeFunc:   func(s string) string { return color.New(color.FgCyan).Sprint(s) },
 	}
 
-	zerolog.SetGlobalLevel(logLvl)
-
-	switch conf.LogFormat {
-	case "plain":
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
-	case "logstash":
-		// do nothing
-	default:
-		log.Fatal().Msgf("Unknown log format '%s'", conf.LogFormat)
+	var stdout, stderr *os.File
+	var err error
+	if lf != "" {
+		stdout, err = os.OpenFile(lf, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			fmt.Printf("error opening log file: %v", err)
+			os.Exit(2)
+		}
+		stderr = stdout
+	} else {
+		stdout = os.Stdout
+		stderr = nil
 	}
+	if dbg {
+		lgr.Setup(
+			lgr.Debug,
+			lgr.CallerFile,
+			lgr.CallerFunc,
+			lgr.Msec,
+			lgr.LevelBraces,
+			lgr.Out(stdout),
+			lgr.Err(stderr),
+			lgr.Map(colorizer),
+		)
+	}
+	lgr.Setup(lgr.Out(stdout), lgr.Err(stderr), lgr.Map(colorizer), lgr.StackTraceOnError)
+	lgr.Printf("INFO Logger successfully initialized")
 
-	log.Info().Msg("Logger successfully initialized")
 }

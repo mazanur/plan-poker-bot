@@ -2,8 +2,8 @@ package bot_handler
 
 import (
 	"fmt"
+	"github.com/go-pkgz/lgr"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"gotestbot/internal/bot/view"
 	"gotestbot/internal/service/model"
 	"gotestbot/sdk/tgbot"
@@ -52,13 +52,13 @@ func (b *BotApp) HandleAddRoom(u *tgbot.Update) {
 			Status:      model.New,
 			CreatedDate: time.Now(),
 		}); err != nil {
-			log.Error().Err(err).Msg("")
+			lgr.Printf("[ERROR] SaveRoom not")
 			b.sendErrorMessage(u)
 			return
 		}
 
 		if err1 := b.roomService.SaveRoomMember(u.GetUser().UserId, roomId.String()); err1 != nil {
-			log.Error().Err(err1).Msg("")
+			lgr.Printf("[ERROR] can not save room")
 			b.sendErrorMessage(u)
 			return
 		}
@@ -85,7 +85,7 @@ func (b *BotApp) HandleAddRoom(u *tgbot.Update) {
 			buttonId := u.Update.Message.ReplyMarkup.InlineKeyboard[0][0].CallbackData
 			room, err := b.roomService.GetRoomById(u.GetButtonById(*buttonId).GetData("roomId"))
 			if err != nil {
-				log.Error().Err(err).Msg("")
+				lgr.Printf("[ERROR] ")
 				b.sendErrorMessage(u)
 				return
 			}

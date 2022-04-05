@@ -1,8 +1,8 @@
 package tgbot
 
 import (
+	"github.com/go-pkgz/lgr"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/rs/zerolog/log"
 	"strings"
 )
 
@@ -113,7 +113,7 @@ func (u *Update) GetButton() Button {
 	if u.btn == nil {
 		button, err := u.chatProv.GetButton(u.CallbackData())
 		if err != nil {
-			log.Error().Err(err).Msgf("cannot find button %s", u.CallbackData())
+			lgr.Printf("[ERROR] cannot find button %s", u.CallbackData())
 		}
 		u.btn = &button
 	}
@@ -123,7 +123,7 @@ func (u *Update) GetButton() Button {
 func (u *Update) GetButtonById(btnId string) Button {
 	button, err := u.chatProv.GetButton(btnId)
 	if err != nil {
-		log.Error().Err(err).Msgf("cannot find button %s", u.CallbackData())
+		lgr.Printf("[ERROR] cannot find button %s", u.CallbackData())
 	}
 
 	return button
@@ -148,7 +148,7 @@ func (u *Update) GetChatInfo() *ChatInfo {
 	if u.chat == nil {
 		chat, err := u.chatProv.GetChat(u.GetUserId())
 		if err != nil {
-			log.Error().Err(err).Msgf("cannot find chat chat")
+			lgr.Printf("[WARN] cannot find chat chat")
 		}
 		u.chat = &chat
 	}
@@ -166,7 +166,7 @@ func (u *Update) GetChatInfo() *ChatInfo {
 func (u *Update) FlushChatInfo() {
 	err := u.chatProv.SaveChatInfo(*u.GetChatInfo())
 	if err != nil {
-		log.Error().Err(err).Msgf("cannot save chat info: %+v", u.GetChatInfo())
+		lgr.Printf("[ERROR] cannot save chat info: %+v", u.GetChatInfo())
 	}
 }
 

@@ -1,9 +1,9 @@
 package tgbot
 
 import (
+	"github.com/go-pkgz/lgr"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -49,7 +49,7 @@ func (b *Bot) StartLongPolling(handler func(update *Update)) error {
 func (b *Bot) WrapUpdate(update tgbotapi.Update) *Update {
 	user, err := b.SaveUser(&update)
 	if err != nil {
-		log.Err(err).Msg("")
+		lgr.Printf("[ERROR] WrapUpdate")
 	}
 	return WrapUpdate(update, user, b.chatProv)
 }
