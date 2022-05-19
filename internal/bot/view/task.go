@@ -106,6 +106,7 @@ func (v *View) ShowTaskView(chatId int64, taskId string, roomId string, u *tgbot
 		finishBtn := v.createButton(ActionFinishTask, map[string]string{"taskId": taskId, "roomId": roomId})
 		messageBuilder.
 			AddKeyboardRow().
+			AddButton("☕️", v.createButton(ActionAddRate, map[string]string{"sum": "0", "taskId": taskId, "roomId": roomId}).Id).
 			AddButton("0", v.createButton(ActionAddRate, map[string]string{"sum": "0", "taskId": taskId, "roomId": roomId}).Id).
 			AddButton("1", v.createButton(ActionAddRate, map[string]string{"sum": "1", "taskId": taskId, "roomId": roomId}).Id).
 			AddButton("2", v.createButton(ActionAddRate, map[string]string{"sum": "2", "taskId": taskId, "roomId": roomId}).Id).

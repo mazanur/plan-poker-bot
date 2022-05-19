@@ -31,6 +31,7 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 
 	switch {
 	case u.HasCommand("/start") || u.HasAction(view.ActionStart):
+		u.FinishChain().FlushChatInfo()
 		_, _ = b.view.StartView(u)
 
 	case u.HasActionOrChain(view.ActionCreateTask):
@@ -45,8 +46,8 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 		sumInt64, err := strconv.ParseInt(sum, 10, 32)
 		if err != nil {
 			log.Printf("[ERROR] failed to send health, %v", err)
-
 		}
+
 		rate := model.Rate{
 			Id:          uuid.New(),
 			UserId:      u.GetUserId(),
@@ -70,7 +71,6 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 			rates, err := b.rateService.GetRatesByTaskId(taskId)
 			if err != nil {
 				log.Printf("[ERROR] unable to GetRatesByTaskId for taskId %d, %v", taskId, err)
-
 				return
 			}
 			_, _ = b.view.ShowFinishedTaskView(taskId, roomId, rates, u)
@@ -119,7 +119,7 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 	case u.HasAction(view.ActionJoinRoom):
 		roomId := u.GetButton().GetData("roomId")
 		if err := b.roomService.SaveRoomMember(u.GetUser().UserId, roomId); err != nil {
-			log.Printf("[ERROR]  %v", err)
+			log.Printf("[ERROR] %v", err)
 			b.sendErrorMessage(u)
 			return
 		}

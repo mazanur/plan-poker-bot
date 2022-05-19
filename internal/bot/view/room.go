@@ -59,7 +59,7 @@ func (v *View) ShowRooms(u *tgbot.Update) (tgbotapi.Message, error) {
 	builder := new(tgbot.MessageBuilder).
 		InlineId(u.GetInlineId()).
 		Edit(u.IsButton()).
-		Text(fmt.Sprintf("Команта - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members))
+		Text(fmt.Sprintf("Комната - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members))
 
 	joinBtn := v.createButton(ActionJoinRoom, map[string]string{"roomId": room.Id.String()})
 

@@ -104,10 +104,11 @@ func (b *BotApp) HandleAddRoom(u *tgbot.Update) {
 }
 
 func (b *BotApp) sendErrorMessage(u *tgbot.Update) {
+	text := "Что-то пошло не так\n"
 	if u.IsButton() {
-		_, _ = b.view.ErrorMessage(u, "Не удалось сохранить комнату\n")
+		_, _ = b.view.ErrorMessage(u, text)
 	} else {
-		_, _ = b.view.ErrorMessageText("Не удалось сохранить комнату\n", u)
+		_, _ = b.view.ErrorMessageText(text, u)
 	}
 	return
 }

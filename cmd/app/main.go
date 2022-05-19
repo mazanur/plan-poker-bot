@@ -129,9 +129,11 @@ func setupLog(dbg bool, lf string) {
 			lgr.Out(stdout),
 			lgr.Err(stderr),
 			lgr.Map(colorizer),
+			lgr.StackTraceOnError,
 		)
+	} else {
+		lgr.Setup(lgr.Out(stdout), lgr.Err(stderr), lgr.Map(colorizer), lgr.StackTraceOnError)
 	}
-	lgr.Setup(lgr.Out(stdout), lgr.Err(stderr), lgr.Map(colorizer), lgr.StackTraceOnError)
 	lgr.Printf("INFO Logger successfully initialized")
 
 }

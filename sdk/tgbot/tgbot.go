@@ -40,18 +40,23 @@ func (b *Bot) StartLongPolling(handler func(update *Update)) error {
 	u.Timeout = 60
 
 	for update := range b.GetUpdatesChan(u) {
-		wrappedUpdate := b.WrapUpdate(update)
+		wrappedUpdate, err := b.WrapUpdate(update)
+		if err != nil {
+			lgr.Printf("[ERROR]rapped update failed, %v", err)
+			continue
+		}
 		b.handler(wrappedUpdate)
 	}
 	return nil
 }
 
-func (b *Bot) WrapUpdate(update tgbotapi.Update) *Update {
+func (b *Bot) WrapUpdate(update tgbotapi.Update) (*Update, error) {
 	user, err := b.SaveUser(&update)
 	if err != nil {
-		lgr.Printf("[ERROR] WrapUpdate")
+		lgr.Printf("[ERROR] WrapUpdate %v", err)
+		return nil, err
 	}
-	return WrapUpdate(update, user, b.chatProv)
+	return WrapUpdate(update, user, b.chatProv), nil
 }
 
 func (b *Bot) WrapRequest(req *http.Request) (*Update, error) {
@@ -59,7 +64,7 @@ func (b *Bot) WrapRequest(req *http.Request) (*Update, error) {
 	if err != nil {
 		return nil, err
 	}
-	return b.WrapUpdate(*update), nil
+	return b.WrapUpdate(*update)
 }
 
 func (b *Bot) SaveUser(update *tgbotapi.Update) (User, error) {
@@ -82,8 +87,12 @@ func getFrom(update *tgbotapi.Update) (tgbotapi.User, error) {
 		user = update.CallbackQuery.From
 	} else if update.Message != nil {
 		user = update.Message.From
+	} else if update.EditedMessage != nil {
+		user = update.EditedMessage.From
 	} else if update.InlineQuery != nil {
 		user = update.InlineQuery.From
+	} else if update.MyChatMember != nil {
+		user = &update.MyChatMember.From
 	} else {
 		return tgbotapi.User{}, errors.Errorf("Not define user, update - %v", update)
 	}

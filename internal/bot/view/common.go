@@ -29,7 +29,7 @@ func logIfError(send tgbotapi.Message, err error) (tgbotapi.Message, error) {
 	}
 	switch err.(type) {
 	default:
-		lgr.Printf("[ERROR] cannot send")
+		lgr.Printf("[ERROR] cannot send, %v", err)
 		return send, err
 
 	case *json.UnmarshalTypeError:

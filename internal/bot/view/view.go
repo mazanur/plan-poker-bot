@@ -86,7 +86,7 @@ func (v *View) ShowRoomView(prefix, roomId string, u *tgbot.Update) (tgbotapi.Me
 	builder := new(tgbot.MessageBuilder).
 		Message(u.GetUserId(), u.GetMessageId()).
 		Edit(u.IsButton()).
-		Text(prefix + fmt.Sprintf("Команта - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members))
+		Text(prefix + fmt.Sprintf("Комната - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members))
 
 	backBtn := v.createButton(ActionStart, nil)
 	addTaskBtn := v.createButton(ActionCreateTask, map[string]string{"roomId": roomId})
@@ -157,7 +157,7 @@ func (v *View) ShowRoomsInline(rooms []model.Room, u *tgbot.Update) (tgbotapi.Me
 
 		inlineRequest.AddArticle(uuid.NewString(),
 			room.Name, "Статус",
-			fmt.Sprintf("Команта - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members)).
+			fmt.Sprintf("Комната - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members)).
 			AddKeyboardRow().AddButton("Присоединиться", joinBtn.Id)
 	}
 
@@ -182,7 +182,7 @@ func (v *View) ShowRoomViewInline(roomId string, u *tgbot.Update) (tgbotapi.Mess
 	builder := new(tgbot.MessageBuilder).
 		InlineId(u.GetInlineId()).
 		Edit(u.IsButton()).
-		Text(fmt.Sprintf("Команта - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members))
+		Text(fmt.Sprintf("Комната - *%v*\n🗓 %v \n\nУчастники:\n%v", room.Name, room.CreatedDate.Format("02 January 2006"), members))
 
 	joinBtn := v.createButton(ActionJoinRoom, map[string]string{"roomId": room.Id.String()})
 
@@ -194,7 +194,9 @@ func (v *View) ShowRoomViewInline(roomId string, u *tgbot.Update) (tgbotapi.Mess
 func (v *View) ChangeChatOfRoom(room model.Room, chat *tgbotapi.Chat, u *tgbot.Update) (tgbotapi.Message, error) {
 	cancelBtn := v.createButton(ActionCancel, nil)
 	setGroupBtn := v.createButton(ActionSetGroupOfRoom, map[string]string{
-		"roomId": room.Id.String(), "chatId": strconv.FormatInt(chat.ID, 10), "chatName": chat.Title})
+		"roomId":   room.Id.String(),
+		"chatId":   strconv.FormatInt(chat.ID, 10),
+		"chatName": chat.Title})
 
 	text := fmt.Sprintf("Вы отправили сообщение в чат *%v* для привязки к комнате *%v*", chat.Title, room.Name)
 	builder := new(tgbot.MessageBuilder).
