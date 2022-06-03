@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/go-pkgz/lgr"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" //for db migration
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -32,9 +33,9 @@ func main() {
 	pgDb := PgConnInit()
 	pgRepository := dao.NewRepository(pgDb)
 
-	bot, err := tgbot.NewBot(conf.TgToken, pgRepository)
+	bot, err := initTelegramBotApi(pgRepository)
 	if err != nil {
-		lgr.Fatalf("[ERROR] unable to start app")
+		lgr.Fatalf("[ERROR] unable to start app %v", err)
 	}
 
 	rateService := service.NewRateService(pgRepository)
@@ -135,5 +136,17 @@ func setupLog(dbg bool, lf string) {
 		lgr.Setup(lgr.Out(stdout), lgr.Err(stderr), lgr.Map(colorizer), lgr.StackTraceOnError)
 	}
 	lgr.Printf("INFO Logger successfully initialized")
+}
 
+func initTelegramBotApi(pgRepository *dao.Repository) (*tgbot.Bot, error) {
+	l := lgr.Default()
+	_ = tgbotapi.SetLogger(lgr.ToStdLogger(l, conf.LogLevel))
+
+	bot, err := tgbot.NewBot(conf.TgToken, pgRepository)
+	if err != nil {
+		lgr.Fatalf("[ERROR] unable to start app %v", err)
+	}
+	lgr.Printf("[INFO] BotName %s", bot.Self.UserName)
+	bot.Debug = conf.LogLevel == "debug"
+	return bot, err
 }

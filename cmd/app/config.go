@@ -25,7 +25,7 @@ type pg struct {
 
 //goland:noinspection SqlResolve
 var conf struct {
-	TgToken string `env:"TG_TOKEN,notEmpty"  envExpand:"true" envDefault:""`
+	TgToken string `env:"TG_TOKEN,notEmpty"  envExpand:"true" envDefault:"1295847044:AAG1FiX2HVfB-W4xCxSGpEWsbqlfwEiz3-E"`
 
 	Pg pg `envPrefix:"DB_"`
 

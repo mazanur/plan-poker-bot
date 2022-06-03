@@ -14,7 +14,7 @@ const (
 	ActionShowRooms         = tgbot.Action("SHOW_ROOMS")
 	ActionShowRoom          = tgbot.Action("SHOW_ROOM")
 	ActionJoinRoom          = tgbot.Action("JOIN_ROOM")
-	ActionBotAdded          = tgbot.Action("JOIN_ROOM")
+	ActionBotAdded          = tgbot.Action("BOT_ADDED")
 	ActionSetGroupOfRoom    = tgbot.Action("SET_GROUP_OF_ROOM")
 	ActionFinishRoom        = tgbot.Action("FINISH_ROOM")
 	ActionRoomSettingTimes  = tgbot.Action("SETTINGS_ROOM_TIMER")

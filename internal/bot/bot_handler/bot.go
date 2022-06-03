@@ -27,7 +27,7 @@ func NewBotApp(view *view.View, roomProv *service.RoomService, taskProv *service
 	}
 }
 
-func (b *BotApp) Handle(u *tgbot.Update) {
+func (b *BotApp) Handle(u *tgbot.Update) error {
 
 	switch {
 	case u.HasCommand("/start") || u.HasAction(view.ActionStart):
@@ -38,71 +38,14 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 		b.HandleAddTask(u)
 
 	case u.HasActionOrChain(view.ActionAddRate):
-		roomId := u.GetButton().GetData("roomId")
-		taskId := u.GetButton().GetData("taskId")
-		sum := u.GetButton().GetData("sum")
-		parse, _ := uuid.Parse(taskId)
-
-		sumInt64, err := strconv.ParseInt(sum, 10, 32)
-		if err != nil {
-			log.Printf("[ERROR] failed to send health, %v", err)
-		}
-
-		rate := model.Rate{
-			Id:          uuid.New(),
-			UserId:      u.GetUserId(),
-			TaskId:      parse,
-			Sum:         int32(sumInt64),
-			CreatedDate: time.Now(),
-		}
-		if err = b.rateService.UpsertRate(rate); err != nil {
-			log.Printf("[ERROR] failed to send health, %v", err)
-			_, _ = b.view.ErrorMessage(u, "Не получилось учесть ваш голос")
-			return
-		}
-
-		finished, err := b.taskService.TaskFinished(taskId)
-		if err != nil {
-			log.Printf("[ERROR] failed to send health, %v", err)
-			return
-		}
-
-		if finished {
-			rates, err := b.rateService.GetRatesByTaskId(taskId)
-			if err != nil {
-				log.Printf("[ERROR] unable to GetRatesByTaskId for taskId %d, %v", taskId, err)
-				return
-			}
-			_, _ = b.view.ShowFinishedTaskView(taskId, roomId, rates, u)
-			_, _ = b.view.ShowSetTaskGrade(taskId, roomId, u)
-
-			err = b.taskService.SetFinished(taskId)
-			if err != nil {
-				log.Printf("[ERROR] failed to send health, %v", err)
-				return
-			}
-
-		} else {
-			//_, _ = b.view.ShowTaskTime(taskId, roomId, u)
-			_, _ = b.view.ShowTaskView(0, taskId, roomId, u)
+		if err := b.handleAddRate(u); err != nil {
+			return err
 		}
 
 	case u.HasAction(view.ActionRevoteTaskRate):
-		roomId := u.GetButton().GetData("roomId")
-		taskId := u.GetButton().GetData("taskId")
-
-		err := b.rateService.DelRatesByTaskId(taskId)
-		if err != nil {
-			log.Printf("[ERROR] %v", err)
-			_, _ = b.view.ErrorMessage(u, "Не получилось рестартовать голосование")
-			return
+		if err := b.handleRevoteTaskRate(u); err != nil {
+			return err
 		}
-		room, err := b.roomService.GetRoomById(roomId)
-		if err != nil {
-			log.Printf("[ERROR] unable to get room by roomId: %d %v", roomId, err)
-			return
-		}
-		b.postTask(u, room.ChatId, taskId, roomId)
 
 	case u.HasAction(view.ActionShowRooms):
 		_, _ = b.view.ShowRooms(u)
@@ -120,8 +63,7 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 		roomId := u.GetButton().GetData("roomId")
 		if err := b.roomService.SaveRoomMember(u.GetUser().UserId, roomId); err != nil {
 			log.Printf("[ERROR] %v", err)
-			b.sendErrorMessage(u)
-			return
+			return err
 		}
 		_, _ = b.view.ShowRoomViewInline(roomId, u)
 
@@ -134,12 +76,11 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 		if err != nil {
 			log.Printf("[ERROR]  %v", err)
 			_, _ = b.view.ErrorMessage(u, fmt.Sprintf("❗Сперва добавьте бота в чат %v", u.GetButton().GetData("chatName")))
-			return
+			return err
 		}
 		if err = b.roomService.SetChatIdRoom(roomId, chatIdInt64); err != nil {
 			log.Printf("[ERROR]  %v", err)
-			b.sendErrorMessage(u)
-			return
+			return err
 		}
 		go b.view.ErrorMessage(u, fmt.Sprintf("✅ Чат %v успешно привязан", u.GetButton().GetData("chatName")))
 		_, _ = b.view.ShowRoomView("", roomId, u)
@@ -148,83 +89,49 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 		roomId := u.GetButton().GetData("roomId")
 		room, err := b.roomService.GetRoomById(roomId)
 		if err != nil {
-			log.Printf("[ERROR] unable to get room by roomId: %d, %v", roomId, err)
-			return
+			return err
 		}
 		if room.UserId != u.GetUserId() {
 			log.Printf("[WARN] not finished by not admin user: %d, %v", u.GetUserId(), err)
 			_, _ = b.view.ErrorMessage(u, "❗️ Раскрыться может только администратор комнаты")
-			return
+			return nil
 		}
 
 		taskId := u.GetButton().GetData("taskId")
 		if err = b.taskService.SetFinished(taskId); err != nil {
 			log.Printf("[ERROR] unable to set room by roomId: %d, %v", roomId, err)
-			return
+			return err
 		}
 
 		rates, err := b.rateService.GetRatesByTaskId(taskId)
 		if err != nil {
-			log.Printf("[ERROR] some less important message, %v", err)
+			return err
 		}
 		if rates == nil {
 			_, _ = b.view.ErrorMessage(u, "❗️ Невозможно завершить оценку задачи, отсутствуют оценки")
-			log.Default().Logf("[WARN] %v", err)
-			return
+			return nil
 		}
 
 		err = b.taskService.SetFinished(taskId)
 		if err != nil {
 			log.Printf("[ERROR]  %v", err)
-			return
+			return err
 		}
 		_, _ = b.view.ShowFinishedTaskView(taskId, roomId, rates, u)
 		_, _ = b.view.ShowSetTaskGrade(taskId, roomId, u)
 
 	case u.HasAction(view.ActionFinishRoom):
-		roomId := u.GetButton().GetData("roomId")
-		room, err := b.roomService.GetRoomById(roomId)
-		if err != nil {
-			log.Printf("[ERROR] unable to get room by roomId: %d, %v", roomId, err)
-			return
-		}
-		if room.Status == model.Finished {
-			_, _ = b.view.ErrorMessage(u, "❗️ Планирование уже завершено")
-			return
-		}
-
-		_, err = b.view.ShowTasksAfterFinishedRoom(roomId, u)
-		if err == nil {
-			if err = b.roomService.SetStatusRoom(model.Finished, roomId); err != nil {
-				log.Printf("[ERROR] unable to set finished for room: %d, %v", roomId, err)
-				return
-			}
-			_, _ = b.view.ErrorMessage(u, "Планирование успешно завершено")
-		} else {
-			_, _ = b.view.ErrorMessage(u, "Не удалось завершить планирование")
+		if err := b.handleFinishRoom(u); err != nil {
+			return err
 		}
 
 	case u.HasActionOrChain(view.ActionFinishTaskRate):
 		b.HandleAddTaskGrade(u)
 
 	case u.HasAction(view.ActionNextTask):
-		roomId := u.GetButton().GetData("roomId")
-		task, err := b.taskService.GetNextNotFinishedTask(roomId)
-		if err != nil {
-			log.Printf("[ERROR]  %v", err)
-			_, _ = b.view.ErrorMessage(u, "❗️ Не найдено запланированных задач!")
-			return
+		if err := b.handleNextTask(u); err != nil {
+			return err
 		}
-		room, err := b.roomService.GetRoomById(roomId)
-		if err != nil {
-			log.Printf("[ERROR] unable to get room by roomId: %d, %v", roomId, err)
-			return
-		}
-		if room.UserId != u.GetUserId() {
-			_, _ = b.view.ErrorMessage(u, "")
-			return
-		}
-		b.postTask(u, room.ChatId, task.Id.String(), roomId)
 	}
 
 	switch {
@@ -238,8 +145,122 @@ func (b *BotApp) Handle(u *tgbot.Update) {
 
 	case u.HasActionOrChain(view.ActionCreateRoom):
 		b.HandleAddRoom(u)
-
 	}
+	return nil
+}
+
+func (b *BotApp) handleRevoteTaskRate(u *tgbot.Update) error {
+	roomId := u.GetButton().GetData("roomId")
+	taskId := u.GetButton().GetData("taskId")
+
+	err := b.rateService.DelRatesByTaskId(taskId)
+	if err != nil {
+		return err
+	}
+	room, err := b.roomService.GetRoomById(roomId)
+	if err != nil {
+		return err
+	}
+	b.postTask(u, room.ChatId, taskId, roomId)
+	return nil
+}
+
+func (b *BotApp) handleFinishRoom(u *tgbot.Update) error {
+	roomId := u.GetButton().GetData("roomId")
+	room, err := b.roomService.GetRoomById(roomId)
+	if err != nil {
+		log.Printf("[ERROR] unable to get room by roomId: %d, %v", roomId, err)
+		return err
+	}
+	if room.Status == model.Finished {
+		_, _ = b.view.ErrorMessage(u, "❗️ Планирование уже завершено")
+		return nil
+	}
+
+	_, err = b.view.ShowTasksAfterFinishedRoom(roomId, u)
+	if err == nil {
+		if err = b.roomService.SetStatusRoom(model.Finished, roomId); err != nil {
+			log.Printf("[ERROR] unable to set finished for room: %d, %v", roomId, err)
+			return err
+		}
+		_, _ = b.view.ErrorMessage(u, "Планирование успешно завершено")
+	} else {
+		_, _ = b.view.ErrorMessage(u, "Не удалось завершить планирование")
+	}
+	return nil
+}
+
+func (b *BotApp) handleNextTask(u *tgbot.Update) error {
+	roomId := u.GetButton().GetData("roomId")
+	task, err := b.taskService.GetNextNotFinishedTask(roomId)
+	if err != nil {
+		log.Printf("[ERROR]  %v", err)
+		_, _ = b.view.ErrorMessage(u, "❗️ Не найдено запланированных задач!")
+		return nil
+	}
+	room, err := b.roomService.GetRoomById(roomId)
+	if err != nil {
+		log.Printf("[ERROR] unable to get room by roomId: %d, %v", roomId, err)
+		return err
+	}
+	if room.UserId != u.GetUserId() {
+		_, _ = b.view.ErrorMessage(u, "❗")
+		return nil
+	}
+	b.postTask(u, room.ChatId, task.Id.String(), roomId)
+	return nil
+}
+
+func (b *BotApp) handleAddRate(u *tgbot.Update) error {
+	roomId := u.GetButton().GetData("roomId")
+	taskId := u.GetButton().GetData("taskId")
+	sum := u.GetButton().GetData("sum")
+	parse, _ := uuid.Parse(taskId)
+
+	sumInt64, err := strconv.ParseInt(sum, 10, 32)
+	if err != nil {
+		log.Printf("[ERROR] failed to send health, %v", err)
+		return err
+	}
+
+	rate := model.Rate{
+		Id:          uuid.New(),
+		UserId:      u.GetUserId(),
+		TaskId:      parse,
+		Sum:         int32(sumInt64),
+		CreatedDate: time.Now(),
+	}
+	if err = b.rateService.UpsertRate(rate); err != nil {
+		log.Printf("[ERROR] failed to send health, %v", err)
+		return err
+	}
+
+	finished, err := b.taskService.TaskFinished(taskId)
+	if err != nil {
+		log.Printf("[ERROR] failed to send health, %v", err)
+		return err
+	}
+
+	if finished {
+		rates, err := b.rateService.GetRatesByTaskId(taskId)
+		if err != nil {
+			log.Printf("[ERROR] unable to GetRatesByTaskId for taskId %d, %v", taskId, err)
+			return err
+		}
+		_, _ = b.view.ShowFinishedTaskView(taskId, roomId, rates, u)
+		_, _ = b.view.ShowSetTaskGrade(taskId, roomId, u)
+
+		err = b.taskService.SetFinished(taskId)
+		if err != nil {
+			log.Printf("[ERROR] failed to send health, %v", err)
+			return err
+		}
+
+	} else {
+		//_, _ = b.view.ShowTaskTime(taskId, roomId, u)
+		_, _ = b.view.ShowTaskView(0, taskId, roomId, u)
+	}
+	return nil
 }
 
 func (b *BotApp) postTask(u *tgbot.Update, chatId int64, taskId, roomId string) {

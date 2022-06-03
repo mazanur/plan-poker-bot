@@ -60,9 +60,9 @@ func (v *View) StartView(u *tgbot.Update) (tgbotapi.Message, error) {
 	msg := new(tgbot.MessageBuilder).
 		Message(u.GetChatId(), u.GetMessageId()).
 		Edit(u.IsButton()).
-		Text("Добро пожаловать! \nЭто *PlanPokerBot*. Выберите одно из предоложенных действий").
-		AddKeyboardRow().AddButton("Создать комнату", crtBtn.Id).
-		AddKeyboardRow().AddButton("Просмотреть комнаты", showBtn.Id).
+		Text("Добро пожаловать! \nЭто *PlanPokerBot*. Выберите одно из предложенных действий").
+		AddKeyboardRow().AddButton("➕ Создать комнату", crtBtn.Id).
+		AddKeyboardRow().AddButton("👥 Просмотреть комнаты", showBtn.Id).
 		Build()
 
 	return logIfError(v.tg.Send(msg))
@@ -98,7 +98,7 @@ func (v *View) ShowRoomView(prefix, roomId string, u *tgbot.Update) (tgbotapi.Me
 		AddKeyboardRow().AddButtonSwitch("📢 Отправить в чат", room.Name).
 		AddKeyboardRow().AddButton("🗂 Задачи", tasksBtn.Id).AddButton("📤 Следующая задача", nextTaskBtn.Id).
 		AddKeyboardRow().AddButton("🏁 Завершить планирование", finishRmBtn.Id).
-		AddKeyboardRow().AddButton("Назад", backBtn.Id)
+		AddKeyboardRow().AddButton("🔙 Назад", backBtn.Id)
 	return logIfError(v.tg.Send(builder.Build()))
 }
 
@@ -148,6 +148,7 @@ func (v *View) ShowRoomsInline(rooms []model.Room, u *tgbot.Update) (tgbotapi.Me
 		users, err := v.roomProv.GetUsersByRoomId(room.Id.String())
 		if err != nil {
 			lgr.Printf("[ERROR] unable to get users by roomId: %d", room.Id.String())
+			return tgbotapi.Message{}, err
 		}
 
 		var members string

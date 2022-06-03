@@ -17,7 +17,7 @@ type ChatProvider interface {
 
 type Bot struct {
 	*tgbotapi.BotAPI
-	handler  func(update *Update)
+	handler  func(update *Update) error
 	chatProv ChatProvider
 	BotSelf  tgbotapi.User
 }
@@ -31,7 +31,7 @@ func NewBot(token string, chatProv ChatProvider) (*Bot, error) {
 	return &Bot{BotAPI: api, chatProv: chatProv, BotSelf: me}, nil
 }
 
-func (b *Bot) StartLongPolling(handler func(update *Update)) error {
+func (b *Bot) StartLongPolling(handler func(update *Update) error) error {
 	if b.handler != nil {
 		return errors.New("long polling already started")
 	}
@@ -42,10 +42,26 @@ func (b *Bot) StartLongPolling(handler func(update *Update)) error {
 	for update := range b.GetUpdatesChan(u) {
 		wrappedUpdate, err := b.WrapUpdate(update)
 		if err != nil {
-			lgr.Printf("[ERROR]rapped update failed, %v", err)
+			lgr.Printf("[ERROR] wrapped update failed, %v", err)
 			continue
 		}
-		b.handler(wrappedUpdate)
+		err = b.handler(wrappedUpdate)
+		if err != nil {
+			lgr.Printf("[ERROR] %v", err)
+			text := "Что-то пошло не так "
+			var msg tgbotapi.Chattable
+			if update.CallbackQuery == nil {
+				msg = tgbotapi.NewMessage(wrappedUpdate.GetChatId(), text)
+				_, _ = b.BotAPI.Send(msg)
+			} else {
+				msg = &tgbotapi.CallbackConfig{
+					CallbackQueryID: update.CallbackQuery.ID,
+					Text:            text,
+					ShowAlert:       true,
+				}
+			}
+			_, _ = b.BotAPI.Send(msg)
+		}
 	}
 	return nil
 }
