@@ -393,10 +393,10 @@
 
   var headerColorKey = 'bg_color';
   function setHeaderColor(color) {
-    // if (!versionAtLeast('6.1')) {
-    //   console.warn('[Telegram.WebApp] Header color is not supported in version ' + webAppVersion);
-    //   return;
-    // }
+    if (!versionAtLeast('6.1')) {
+      console.warn('[Telegram.WebApp] Header color is not supported in version ' + webAppVersion);
+      return;
+    }
     var color_key;
     if (color == 'bg_color' || color == 'secondary_bg_color') {
       color_key = color;
