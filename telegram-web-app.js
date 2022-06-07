@@ -393,10 +393,10 @@
 
   var headerColorKey = 'bg_color';
   function setHeaderColor(color) {
-    if (!versionAtLeast('6.1')) {
-      console.warn('[Telegram.WebApp] Header color is not supported in version ' + webAppVersion);
-      return;
-    }
+    // if (!versionAtLeast('6.1')) {
+    //   console.warn('[Telegram.WebApp] Header color is not supported in version ' + webAppVersion);
+    //   return;
+    // }
     var color_key;
     if (color == 'bg_color' || color == 'secondary_bg_color') {
       color_key = color;
@@ -423,10 +423,10 @@
 
   var backgroundColor = null;
   function setBackgroundColor(color) {
-    if (!versionAtLeast('6.1')) {
-      console.warn('[Telegram.WebApp] Background color is not supported in version ' + webAppVersion);
-      return;
-    }
+    // if (!versionAtLeast('6.1')) {
+    //   console.warn('[Telegram.WebApp] Background color is not supported in version ' + webAppVersion);
+    //   return;
+    // }
     var bg_color = parseColorToHex(color);
     if (!bg_color) {
       console.error('[Telegram.WebApp] Background color format is invalid', color);
@@ -532,10 +532,10 @@
     }
 
     function buttonCheckVersion() {
-      if (!versionAtLeast('6.1')) {
-        console.warn('[Telegram.WebApp] BackButton is not supported in version ' + webAppVersion);
-        return false;
-      }
+      // if (!versionAtLeast('6.1')) {
+      //   console.warn('[Telegram.WebApp] BackButton is not supported in version ' + webAppVersion);
+      //   return false;
+      // }
       return true;
     }
 
@@ -821,10 +821,10 @@
     var hapticFeedback = {};
 
     function triggerFeedback(params) {
-      if (!versionAtLeast('6.1')) {
-        console.warn('[Telegram.WebApp] HapticFeedback is not supported in version ' + webAppVersion);
-        return hapticFeedback;
-      }
+      // if (!versionAtLeast('6.1')) {
+      //   console.warn('[Telegram.WebApp] HapticFeedback is not supported in version ' + webAppVersion);
+      //   return hapticFeedback;
+      // }
       if (params.type == 'impact') {
         if (params.impact_style != 'light' &&
             params.impact_style != 'medium' &&
@@ -1006,10 +1006,10 @@
       console.error('[Telegram.WebApp] Invoice url is invalid', url);
       throw Error('WebAppInvoiceUrlInvalid');
     }
-    if (!versionAtLeast('6.1')) {
-      console.error('[Telegram.WebApp] Method openInvoice is not supported in version ' + webAppVersion);
-      throw Error('WebAppMethodUnsupported');
-    }
+    // if (!versionAtLeast('6.1')) {
+    //   console.error('[Telegram.WebApp] Method openInvoice is not supported in version ' + webAppVersion);
+    //   throw Error('WebAppMethodUnsupported');
+    // }
     if (webAppInvoices[slug]) {
       console.error('[Telegram.WebApp] Invoice is already opened');
       throw Error('WebAppInvoiceOpened');
