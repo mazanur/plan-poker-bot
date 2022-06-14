@@ -65,7 +65,7 @@
 
    
    
-   tg.BackButton.text = "Changed Text1"; //изменяем текст кнопки 
+   tg.BackButton.text = "BackButton"; //изменяем текст кнопки 
    tg.BackButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
    
    let btn = document.getElementById("btn"); //получаем кнопку скрыть/показать 
@@ -77,6 +77,8 @@
       else{ //иначе
 //          tg.MainButton.show() //показываем 
          tg.BackButton.show() //показываем 
+         tg.HapticFeedback.notificationOccurred('success') //показываем 
+
       }
    });
 
