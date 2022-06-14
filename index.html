@@ -57,36 +57,40 @@
 
    tg.expand(); //расширяем на все окно  
 
-   tg.MainButton.text = "Changed Text"; //изменяем текст кнопки 
-   tg.MainButton.setText("MainButton2"); //изменяем текст кнопки иначе
-   tg.MainButton.textColor = "#F55353"; //изменяем цвет текста кнопки
-   tg.MainButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
-   tg.MainButton.setParams({"color": "#143F6B"}); //так изменяются все параметры
+   tg.BackButton.text = "Changed Text"; //изменяем текст кнопки 
+//    tg.MainButton.setText("MainButton2"); //изменяем текст кнопки иначе
+//    tg.MainButton.textColor = "#F55353"; //изменяем цвет текста кнопки
+//    tg.MainButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
+//    tg.MainButton.setParams({"color": "#143F6B"}); //так изменяются все параметры
 
    let btn = document.getElementById("btn"); //получаем кнопку скрыть/показать 
 
    btn.addEventListener('click', function(){ //вешаем событие на нажатие html-кнопки
       if (tg.MainButton.isVisible){ //если кнопка показана 
+         tg.BackButton.hide() //скрываем кнопку 
          tg.MainButton.hide() //скрываем кнопку 
+
       }
       else{ //иначе
+         tg.BackButton.show() //показываем 
          tg.MainButton.show() //показываем 
+        
       }
    });
 
    let btnED = document.getElementById("btnED"); //получаем кнопку активировать/деактивировать
    btnED.addEventListener('click', function(){ //вешаем событие на нажатие html-кнопки
-      if (tg.MainButton.isActive){ //если кнопка показана 
-         tg.MainButton.setParams({"color": "#E0FFFF"}); //меняем цвет
-         tg.MainButton.disable() //скрываем кнопку 
+      if (tg.BackButton.isActive){ //если кнопка показана 
+//          tg.BackButton.setParams({"color": "#E0FFFF"}); //меняем цвет
+         tg.BackButton.disable() //скрываем кнопку 
       }
       else{ //иначе
-         tg.MainButton.setParams({"color": "#143F6B"}); //меняем цвет
-         tg.MainButton.enable() //показываем 
+         tg.BackButton.setParams({"color": "#143F6B"}); //меняем цвет
+         tg.BackButton.enable() //показываем 
       }
    });
 
-   Telegram.WebApp.onEvent('mainButtonClicked', function(){
+   Telegram.WebApp.onEvent('backButtonClicked', function(){
       tg.HapticFeedback.selectionChanged() //показываем 
       
       tg.sendData("some string that we need to send"); 
