@@ -91,6 +91,12 @@
    });
 
    Telegram.WebApp.onEvent('backButtonClicked', function(){
+      let usercard1 = document.getElementById("usercard"); //получаем блок usercard 
+      let profName1 = document.createElement('p'); //создаем параграф
+      profName1.innerText = '3rsfsfs'
+      usercard1.appendChild(profName1); //добавляем 
+
+
       tg.HapticFeedback.selectionChanged() //показываем 
       
       tg.sendData("some string that we need to send"); 
