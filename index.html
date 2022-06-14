@@ -65,19 +65,19 @@
 
    
    
-   tg.BackButton.text = "BackButton"; //изменяем текст кнопки 
-   tg.BackButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
+   tg.MainButton.text = "MainButton"; //изменяем текст кнопки 
+   tg.MainButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
    
    let btn = document.getElementById("btn"); //получаем кнопку скрыть/показать 
 
    btn.addEventListener('click', function(){ //вешаем событие на нажатие html-кнопки
-      if (tg.BackButton.isVisible){ //если кнопка показана 
-         tg.BackButton.hide() //скрываем кнопку 
+      if (tg.MainButton.isVisible){ //если кнопка показана 
+         tg.MainButton.hide() //скрываем кнопку 
       }
       else{ //иначе
-//          tg.MainButton.show() //показываем 
-         tg.BackButton.show() //показываем 
-         tg.HapticFeedback.notificationOccurred("success") //показываем 
+         tg.MainButton.show() //показываем 
+//          tg.BackButton.show() //показываем 
+         tg.HapticFeedback.notificationOccurred('success') //показываем 
 
       }
    });
