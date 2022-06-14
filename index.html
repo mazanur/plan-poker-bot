@@ -103,6 +103,12 @@
       //при клике на основную кнопку отправляем данные в строковом виде
    });
 
+   Telegram.WebApp.onEvent('mainButtonClicked', function(){
+      let usercard2 = document.getElementById("usercard"); //получаем блок usercard 
+      let profName2 = document.createElement('p'); //создаем параграф
+      profName2.innerText = tg.version
+      usercard2.appendChild(profName2); //добавляем 
+   });
 
    let usercard = document.getElementById("usercard"); //получаем блок usercard 
 
