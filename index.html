@@ -65,7 +65,7 @@
 
    
    
-   tg.MainButton.text = "MainButton4"; //изменяем текст кнопки 
+   tg.MainButton.text = "MainButton5"; //изменяем текст кнопки 
    tg.MainButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
    
    let btn = document.getElementById("btn"); //получаем кнопку скрыть/показать 
@@ -94,8 +94,6 @@
 
    Telegram.WebApp.onEvent('mainButtonClicked', function()
       tg.HapticFeedback.selectionChanged() //показываем 
-
-      tg.HapticFeedback.impactOccurred("heavy") //показываем 
 
       tg.sendData("some string that we need to send"); 
       //при клике на основную кнопку отправляем данные в строковом виде
