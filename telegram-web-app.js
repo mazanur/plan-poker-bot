@@ -311,9 +311,7 @@
   if (theme_params) {
     setThemeParams(theme_params);
   }
-  if (initParams.tgWebAppVersion) {
-    webAppVersion = initParams.tgWebAppVersion;
-  }
+
 
   function onThemeChanged(eventType, eventData) {
     if (eventData.theme_params) {
