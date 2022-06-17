@@ -58,7 +58,7 @@
    tg.expand(); //расширяем на все окно  
 
    tg.BackButton.text = "Changed Text"; //изменяем текст кнопки 
-   tg.MainButton.setText("MainButton14"); //изменяем текст кнопки иначе
+   tg.MainButton.setText("MainButton15"); //изменяем текст кнопки иначе
 //    tg.MainButton.textColor = "#F55353"; //изменяем цвет текста кнопки
 //    tg.MainButton.color = "#143F6B"; //изменяем цвет бэкграунда кнопки
 //    tg.MainButton.setParams({"color": "#143F6B"}); //так изменяются все параметры
@@ -126,9 +126,9 @@
    usercard.appendChild(userid); //добавляем
 
 
-   //работает только в attachment menu
-   // let pic = document.createElement('img'); //создаем img
-   // pic.src = tg.initDataUnsafe.user.photo_url; //задаём src 
-   // usercard.appendChild(pic); //добавляем элемент в карточку 
+   работает только в attachment menu
+   let pic = document.createElement('img'); //создаем img
+   pic.src = tg.initDataUnsafe.user.photo_url; //задаём src 
+   usercard.appendChild(pic); //добавляем элемент в карточку 
 </script>
 </html>
